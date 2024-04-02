@@ -1,0 +1,39 @@
+# Whitelist of services.The services below are just sample, we will be listing down services declared under $whitelist variable.
+$whitelist = @(
+"AarSvc_37bc9",
+"AdobeARMservice",
+"AJRouter",
+"ALG",
+"AppIDSvc"
+
+# Add all services from the whitelist here
+)
+
+# Get device name
+$deviceName = $env:COMPUTERNAME
+
+# Get list of running services
+$services = Get-Service | Select-Object -ExpandProperty Name
+
+# Check for unauthorized services
+$unauthorizedServices = $services | Where-Object { $_ -notin $whitelist }
+
+# Output unauthorized services. Below, the windows services running in the machine will be compared to the whitelist above $whitelist.
+##If wndows services are not in the whitelist, it will be considred as unauthorized services
+## A log file will be created in the local machine. 
+
+if ($unauthorizedServices) {
+    Write-Host "Unauthorized services found:"
+    $unauthorizedServices | ForEach-Object {
+        $output = "$deviceName - $_"
+        Write-Host $output
+
+        # Save output to file with timestamp in filename
+        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $outputPath = "C:\whitelist\unauthorized_services_${deviceName}_${timestamp}.txt"
+        $output | Out-File -FilePath $outputPath -Append
+    }
+    Write-Host "Output saved to: $outputPath"
+} else {
+    Write-Host "No unauthorized services found."
+}
